@@ -1,0 +1,126 @@
+---
+title: "Stat 580 Final Project Animation RMS"
+output: pdf_document
+date: "2023-12-04"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(KernSmooth) # for kernel smoothers
+library(pander) # for nicely formatted tables
+library(ggplot2) # ggplot for data visualizations
+library(animation)
+```
+
+```{r rms function}
+rms = function(x, y, h){
+  ys = 0 
+  xs = seq(min(x), max(x), length = 50) 
+  for(i in 1:length(xs)){
+  
+    ys[i] = mean(y[(x>xs[i]-h)&(x<xs[i]+h)])
+   
+  }
+  list(y=ys, x=xs) 
+}
+```
+
+```{r test plot}
+data = read.csv("~/Documents/SDSU /Stat580/FinalProject/Global_Education.csv", header=TRUE)
+
+math = data[,21]
+
+birth = data[,26]
+
+n = length(birth)
+
+df = data.frame(math=math, birth=birth)
+
+optimalbw = dpill(math, birth)
+
+
+rms_3 = rms(math, birth, 3)
+rms_5 = rms(math, birth, 5)
+rms_best = rms(math, birth, optimalbw)
+
+
+
+x = c(rms_3$x, rms_5$x, rms_best$x)
+y = c(rms_3$y, rms_5$y, rms_best$y)
+group = as.factor(c(rep("BW 3", 50), rep("BW 5", 50), rep("BW optimal", 50)))
+vizdata = data.frame(x=x, y=y, Bandwidths=group)
+
+ggplot() +
+  geom_point(data=df, aes(x=math, y=birth)) +
+  geom_line(data=vizdata, aes(x=x, y=y, color=Bandwidths, linetype = Bandwidths) )+
+  annotate("text", x = 50, y = 40, label = paste("OptBandwidth: ", round(optimalbw, 4)), hjust = 0, vjust = 0) +
+  ggtitle("Scatter Plot RMS Multiple Bandwidths")
+
+
+vizdata2 = data.frame(x=rms_best$x, y=rms_best$y)
+
+ggplot() +
+  geom_point(data=df, aes(x=math, y=birth)) +
+  geom_line(data=vizdata2, aes(x=x, y=y) ) +
+  annotate("text", x = 70, y = 40, label = paste("Bandwidth: ", round(optimalbw, 4)), hjust = 0, vjust = 0) +
+  ggtitle("Scatter Plot RMS with Optimal Bandwidth")
+```
+```{r subset data}
+
+nonzero_pairs = math != 0 & birth != 0
+
+filtered_math = math[nonzero_pairs]
+filtered_birth = birth[nonzero_pairs]
+
+filtered_math
+filtered_birth
+```
+```{r subset graph}
+n = length(filtered_birth)
+
+df = data.frame(math=filtered_math, birth=filtered_birth)
+
+optimalbw = dpill(filtered_math, filtered_birth)
+
+rms_best = rms(filtered_math, filtered_birth, optimalbw)
+
+vizdata3 = data.frame(x=rms_best$x, y=rms_best$y)
+
+ggplot() +
+  geom_point(data=df, aes(x=math, y=birth)) +
+  geom_line(data=vizdata3, aes(x=x, y=y) ) +
+  annotate("text", x = 50, y = 40, label = paste("Optimal Bandwidth: ", round(optimalbw, 4)), hjust = 0, vjust = 0) +
+  ggtitle("Filtered Data: Scatter Plot RMS")
+```
+```{r animation rms}
+
+source("rmsani.R") # rms function to create animation frames
+# set time interval (in seconds) and number of frames for the animation
+oopt = ani.options(interval = 0.25, nmax = 50)
+# function creating smooth in each neighborhood of 50 equally-spaced points
+rmsfit = rmsani(filtered_math,filtered_birth,optimalbw,1)
+ani.options(oopt)
+# final static image to present after animation
+plot(filtered_math, filtered_birth, 
+	xlab="Math Proficiency", ylab="Birth Rate", main="Running mean smooth")
+lines(rmsfit$xs, rmsfit$ys)
+
+#saveHTML(rmsani(filtered_math,filtered_birth,optimalbw,1), htmlfile="~/Documents/SDSU /Stat580/FinalProject/rmsani1.html")
+saveGIF(rmsani(filtered_math,filtered_birth,optimalbw,1), movie.name="~/Documents/SDSU /Stat580/FinalProject/rmsani1.gif")
+```
+```{r animation rls}
+source("rlsani.R") # running line smooth function to create animation frames
+# set time interval (in seconds) and number of frames for the animation
+oopt = ani.options(interval = 0.25, nmax = 50)
+# function creating smooth in each neighborhood of 50 equally-spaced points
+rls = rlsani(filtered_math,filtered_birth,optimalbw,1)
+ani.options(oopt)
+# final static image to present after animation
+plot(filtered_math, filtered_birth, 
+	xlab="Math Proficiency", ylab="Birth Rate", main="Running line smooth")
+lines(rls$xs, rls$ys)
+
+lines(rms(filtered_math,filtered_birth, optimalbw), lty=2)
+#saveHTML(rlsani(filtered_math,filtered_birth,optimalbw,1), htmlfile="~/Documents/SDSU /Stat580/FinalProject/rlsani.html")
+saveGIF(rlsani(filtered_math,filtered_birth,optimalbw,1), movie.name="~/Documents/SDSU /Stat580/FinalProject/rlsani.gif")
+```
