@@ -32,4 +32,6 @@ Variance refers to the error from sensitivity to fluctuations in the training se
 ### Broader Impacts:
 The running mean smooth provides a more interpretable representation of the data, which is critical for people who do not study statistics. Plus by highlighting the trends and patterns in the data, policymakers and practitioners can make more informed decisions about global education. 
 
-In conclusion, the scatter plot with the running mean smooth suggests a potential inverse relationship between the math proficiency and birth rate variables. The chosen bandwidth of 5.3 seems to balance the trade-off between bias and variance well, as evidenced by the smoothness of the running mean line. While the running mean smooth indicates a trend, further statistical analysis like, correlation or regression analysis, is needed to understand the strength and significance of the relationship. 
+### Conclusion:
+
+The scatter plot with the running mean smooth suggests a potential inverse relationship between the math proficiency and birth rate variables. The chosen bandwidth of 5.3 seems to balance the trade-off between bias and variance well, as evidenced by the smoothness of the running mean line. While the running mean smooth indicates a trend, further statistical analysis like, correlation or regression analysis, is needed to understand the strength and significance of the relationship. 
